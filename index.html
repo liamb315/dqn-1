@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<img id="img" src="" />
+<pre id="log"></pre>
+<script>
+  // helper function: log message to screen
+  function log(msg) {
+    document.getElementById('log').textContent += msg + '\n';
+  }
+
+  function encode(bytes) {
+      var str = String.fromCharCode.apply(null, bytes);
+      return btoa(str);
+  } 
+
+  var image_bytes = [];
+  var receiving_image = false;
+
+  // setup websocket with callbacks
+  var ws = new WebSocket('ws://192.168.59.103:32769/');
+  ws.onopen = function() {
+    log('CONNECT');
+  };
+  ws.onclose = function() {
+    log('DISCONNECT');
+  };
+  ws.onmessage = function(event) {
+    if (receiving_image) {
+      image_bytes.push(event.data);
+    }
+
+    if (event.data == "image_start") {
+      receiving_image = true;
+    } else if (event.data == "image_end") {
+      receiving_image = false;
+      image_bytes.pop(); // image_end
+      image_bytes.pop(); // \n
+      image_bytes.pop(); // [torch.ByteT...]
+      var b64 = encode(image_bytes);
+      image_bytes = [];
+      var img_b64 = "data:image/jpeg;base64," + b64;
+      document.getElementById('img').setAttribute('src', img_b64);
+    }
+
+    log('MESSAGE: ' + event.data);
+  };
+</script>

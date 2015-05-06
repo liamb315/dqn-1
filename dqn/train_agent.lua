@@ -58,6 +58,12 @@ local print = function(...)
     io.flush()
 end
 
+local send_image = function(screen)
+  print("image_start")
+  print(image.compressJPG(screen[1], 50))
+  print("image_end")
+end
+
 local learn_start = agent.learn_start
 local start_time = sys.clock()
 local reward_counts = {}
@@ -76,6 +82,7 @@ local nepisodes
 local episode_reward
 
 local screen, reward, terminal = game_env:getState()
+send_image(screen)
 
 print("Iteration ..", step)
 while step < opt.steps do
